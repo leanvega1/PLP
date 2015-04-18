@@ -26,18 +26,20 @@ extraer e = foldExp lista id (++) (++) id id e
 
 -- Ejercicio 13
 eval :: Modelo -> Mundo -> Exp -> Bool
-eval (K g v) w e = foldExp (\x -> elem w (v x)) (not) (||) (&&) (\_ -> mundoVecino (\x y -> x||y) False)  (\_ -> mundoVecino (\x y -> x&&y) True) e -- faltan definir las dos ultimas funciones
+eval (K g v) w e = foldExp (\x -> elem w (v x)) (not) (||) (&&) (\_ -> mundoVecino (\x y -> x||y) False)  (\_ -> mundoVecino (\x y -> x&&y) True) e
 					where mundoVecino f casoBase = foldr (\w2 b -> f (eval (K g v) w2 e) b) casoBase (vecinos g w)
 
 -- Ejercicio 14
 valeEn :: Exp -> Modelo -> [Mundo]
-valeEn = undefined
+valeEn e (K g v) = foldr (\n b -> if (eval (K g v) n e) then n:b else b) [] (nodos g) 
 
 -- Ejercicio 15
 quitar :: Exp -> Modelo -> Modelo
-quitar = undefined
+quitar e (K g v) = foldr (\n (K g2 v2) -> chequear n (K g2 v2)) (K g v) (nodos g)
+					where chequear n (K g2 v2) = if (eval (K g2 v2) n e) then (K g2 v2) else (K (sacarNodo n g2) v2)
 
 -- Ejercicio 16
 cierto :: Modelo -> Exp -> Bool
-cierto = undefined
+cierto (K g v) e = cantidad (nodos g) == cantidad (valeEn e (K g v))
+					where cantidad = foldr (+) 0
 
