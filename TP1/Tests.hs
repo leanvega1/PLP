@@ -35,7 +35,7 @@ testsGrafo = test [
 	[1,2] ~~? nodos mockGraph1,
 	-- Agregar nodos repetidos no afecta al grafo
 	[1,2] ~~?  nodos ( agNodo 1 mockGraph1),
-	-- Eliminar nodos los elimina de la lista
+	-- sacarNodo los elimina de la lista
 	[1] ~~? nodos ( sacarNodo 2 mockGraph1),
 	[] ~~? nodos (sacarNodo 2 (sacarNodo 1 mockGraph1)),
 	-- agEje agrega correctamente un eje

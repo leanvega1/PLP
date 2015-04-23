@@ -118,11 +118,14 @@ lastunpaired xxs = (\xss -> if null xss then
 						
 
 -- Ejercicio 8
+-- Genera la union de dos grafos recibidos como parametro. 
 union :: Eq a => Grafo a -> Grafo a -> Grafo a
 union (G ns1 r1) (G ns2 r2) = foldr agEje (foldr agNodo (G ns1 r1) ns2) (obtenerListaDeEjesR2) 
-								where obtenerListaDeEjesR2 = foldr (++) [] (listasDeListas)
-									where listasDeListas = foldr (\x c -> (obtenerVecinos x):c) [] ns2 -- listasDeListas tiene una lista de nodos que estan en ns2, en donde cada nodo tiene una lista de tuplas de él con cada uno de sus vecinos 
-										where obtenerVecinos x = foldr (\y b -> (x,y):b) [] (r2 x) -- armo lista con la tupla mencionada en el comentario de arriba
+	where obtenerListaDeEjesR2 = foldr (++) [] (listasDeListas)
+	-- listasDeListas tiene una lista de nodos que estan en ns2, en donde cada nodo tiene una lista de tuplas de él con cada uno de sus vecinos 
+		where listasDeListas = foldr (\x c -> (obtenerVecinos x):c) [] ns2 
+		-- armo lista con la tupla mencionada en el comentario de arriba
+			where obtenerVecinos x = foldr (\y b -> (x,y):b) [] (r2 x) 
 
 										
 -- Ejercicio 9
@@ -133,8 +136,9 @@ union (G ns1 r1) (G ns2 r2) = foldr agEje (foldr agNodo (G ns1 r1) ns2) (obtener
 -- sea la igualdad de listas ordenandolas).
 clausura :: (Ord a) => Grafo a -> Grafo a
 clausura (G ns r) = G ns (clausurar ns r)
-
-
+		
+		
+-- Ejercicio 9 (aux)
 -- Genera una nueva relacion que es la clausura de la relacion
 -- recibida como argumento. Ademas recibe como argumento la 
 -- lista de elementos del grafo para poder representar la relacion
@@ -150,10 +154,10 @@ clausurar ns r = (\a -> (puntofijo ( g (extenderR r) )) [a] )
 	where g = (\eR res -> if (eR res) == [] then 
 							filter (\n -> elem n ns) res
 						else 
-							List.sort $ unique (res ++ (eR res))
+							List.sort $ List.nub (res ++ (eR res))
 				)
+				
 
--- Ejercicio 9 (aux)
 -- Define la aplicacion infinita de f, [f, f.f, f.f.f, f.f.f.f, ...]
 infiniteComposition :: (a -> a) -> [a -> a]
 infiniteComposition f = iterate (h f) f
@@ -186,16 +190,7 @@ puntofijo f a = f ( compose f a)
 									else 
 										last pfs)
           pred = (\f a pf -> not (((f . pf) a) == pf a))	
-			
-	
--- Genera una lista eliminando las repeticiones de la lista recibida
--- como argumento.
-unique :: (Eq a) => [a] -> [a]
-unique = foldr (\e recur -> if elem e recur then
-								recur 
-							else 
-								e:recur) [] 
-	
+		  
 	
 -- Extiende la definicion de una relacion definida como una
 -- funcion a elementos con los que se relaciona como una funcion
@@ -211,10 +206,4 @@ unique = foldr (\e recur -> if elem e recur then
 -- (extenderR r) [1,2,4,9999] == [2,3,4,5]   
 extenderR :: (Ord a) => (a -> [a]) -> ([a] -> [a])
 extenderR r = foldr (g r) []
-	where g = (\r n recur -> List.sort $ unique $ r n ++ recur)
-
-	
--- Aux
-foldr2:: (a -> b -> c -> c) -> c -> [a] -> [b] -> c
-foldr2 f b [] [] = b
-foldr2 f b (x:xs) (y:ys) = f x y (foldr2 f b xs ys)
+	where g = (\r n recur -> List.sort $ List.nub $ r n ++ recur)
