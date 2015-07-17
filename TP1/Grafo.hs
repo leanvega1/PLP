@@ -38,95 +38,53 @@ agNodo n (G ns r) = G ( if elem n ns then ns else n:ns ) r
 -- Genera un nuevo grafo quitando un nodo recibido como argumento
 -- a un grafo recibido como argumento.
 sacarNodo :: Eq a => a -> Grafo a -> Grafo a
-sacarNodo n (G ns r) = G (quitar n ns) (\x -> quitar n (r x))
-						where quitar n = filter (/=n)
-
+sacarNodo n (G ns r) = G ( filter (/=n)  ns) (newR r n)
+	where newR = (\oldR filtN n -> if n == filtN then 
+									[]
+								else
+									filter(/= filtN) $ oldR n)
 						
 -- Ejercicio 6
 -- Genera un nuevo grafo agregando una arista (origen, destino) 
 -- recibida como argumento a un grafo recibido como argumento.
 agEje :: Eq a => (a,a) -> Grafo a -> Grafo a
-agEje (n1,n2) (G ns r) = G ns ( if (elem n1 ns && elem n2 ns)then 
-									(\x -> agEnN1 x n1 n2) 
-								else 
-									r)
-						where agEnN1 x n1 n2 = if x == n1 then 
-													agN2SiNoEsta n2 (r x) 
-												else 
-													r x
-							where agN2SiNoEsta n ns = if elem n ns then 
-															ns 
-														else 
-															n:ns
+agEje (n1,n2) (G ns r) = G (List.nub $ [n1,n2] ++ ns) (newR r n1 n2)
+	where newR = (\oldR n1 n2 n -> if n == n1 then
+									List.nub $ [n2] ++ (oldR n)
+								else
+									(oldR n))
 
 															
 -- Ejercicio 7
 -- Genera un nuevo grafo en base a una lista de nodos. El grafo
--- es una lista simplemente enlazada siguiendo el orden de la lista.
+-- es una lista simplemente enlazada siguiendo el orden de la lista.			
 lineal :: Eq a => [a] -> Grafo a
-lineal xs = foldl f vacio (connectPairs (pairing xs))
-		where f = (\recG xs -> if length xs == 2 then
-								agEje (head xs, head (tail xs)) 
-								(agNodo (head (tail xs)) 
-									(agNodo (head xs) recG)
-									)
-							else 
-								agNodo (head xs) recG
-					)
+lineal xs = foldl f vacio (genPairs xs)
+	where f = (\recG edge -> agEje edge recG)
 
+-- Funcion auxiliar que genera una lista de ejes en base a una lista de nodos
+-- Necesita que la lista tenga mas de un elemento
+genPairs :: [a] -> [(a,a)]
+genPairs list = case list of
+	[] -> []
+	[x] -> []
+	(x:xs) -> zip (x:xs) xs 
 
--- Ejercicio 7 (aux)
--- Funcion auxiliar que genera elementos intermedios que conectan
--- dos elementos de una lista de pares.
-connectPairs :: Eq a => [[a]] -> [[a]]
-connectPairs xss = case xss of 
-			[] -> []
-			[[]] -> []
-			[[x]] -> [[x]]
-			_ -> foldl (\recur xs -> 
-									if length (recur) > 0 then
-										recur ++ [[last (last recur), head xs]] ++ [xs]
-									else
-										recur ++ [xs]
-					) [] xss
-
-					
--- Funcion auxiliar que transforma una lista de elementos en una
--- lista de listas de pares de elementos.
-pairing :: Eq a => [a] -> [[a]]
-pairing xs = foldl (\recur x ->  (headpaired recur) ++ [(lastunpaired recur) ++ [x]] ) [[]] xs
-
-
--- Funcion auxiliar que devuelve la lista de listas de pares de elementos
--- hasta el primer elemento unitario de la lista.
-headpaired :: Eq a => [[a]] -> [[a]]
-headpaired xxs = (\xss -> if null xss then 
-							[] 
-						else 
-							xss
-					) (takeWhile ((\xs -> length xs == 2)) xxs) 
-						
-						
--- Funcion auxiliar que devuelve el primer elemento de una lista de listas
--- de pares de elementos que no esta en un par.
-lastunpaired :: Eq a => [[a]] -> [a]
-lastunpaired xxs = (\xss -> if null xss then 
-							[] 
-						else 
-							head xss
-					) (dropWhile ((\xs -> length xs == 2)) xxs) 
-						
-
--- Ejercicio 8
--- Genera la union de dos grafos recibidos como parametro. 
+	
+-- Ejercicio 8		
 union :: Eq a => Grafo a -> Grafo a -> Grafo a
-union (G ns1 r1) (G ns2 r2) = foldr agEje (foldr agNodo (G ns1 r1) ns2) (obtenerListaDeEjesR2) 
-	where obtenerListaDeEjesR2 = foldr (++) [] (listasDeListas)
-	-- listasDeListas tiene una lista de nodos que estan en ns2, en donde cada nodo tiene una lista de tuplas de él con cada uno de sus vecinos 
-		where listasDeListas = foldr (\x c -> (obtenerVecinos x):c) [] ns2 
-		-- armo lista con la tupla mencionada en el comentario de arriba
-			where obtenerVecinos x = foldr (\y b -> (x,y):b) [] (r2 x) 
-
+union graph1 graph2 = foldl colocarEjes graph1 (obtenerEjes graph2)
+	where colocarEjes = (\recG eje -> agEje eje recG)
+	
+							
+obtenerEjes :: Eq a => Grafo a -> [(a,a)]
+obtenerEjes (G ns r) = foldl (f r) [] ns
+	where f = (\r recEjes n -> 
+					recEjes ++ (map ((\n1 n2 -> 
+										(n1,n2) 
+										)n) (r n) ) 
+				)
+         
 										
 -- Ejercicio 9
 -- Genera un grafo clausurando la relacion del grafo recibido como 

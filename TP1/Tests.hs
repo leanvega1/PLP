@@ -27,6 +27,7 @@ mockGraph1 = agNodo 2 (agNodo 1 vacio)
 mockGraph2 = agNodo 4 $ agNodo 3 $ agNodo 2 $ agNodo 1 vacio
 mockGraph3 = lineal [1,2,3,4]
 mockGraph4 = agEje (3,5) (agEje (2,3) (agEje (2,5) (agNodo 5 (agNodo 3 (agNodo 2 vacio)))))
+mockGraph5 = agEje (1,2) $ agEje (1,3) $ agEje (2,3) $ agEje (3,2) vacio
 
 
 testsGrafo = test [
@@ -38,6 +39,10 @@ testsGrafo = test [
 	-- sacarNodo los elimina de la lista
 	[1] ~~? nodos ( sacarNodo 2 mockGraph1),
 	[] ~~? nodos (sacarNodo 2 (sacarNodo 1 mockGraph1)),
+	-- sacarNodo elimina correctamente los ejes
+	[2] ~~? vecinos (sacarNodo 3 mockGraph5) 1,
+	[] ~~? vecinos (sacarNodo 3 mockGraph5) 2,
+	[] ~~? vecinos (sacarNodo 3 mockGraph5) 3,
 	-- agEje agrega correctamente un eje
 	[2] ~~? vecinos  (agEje (1, 2) mockGraph1) 1,
 	-- agEje agrega correctamente y multiples vecinos
