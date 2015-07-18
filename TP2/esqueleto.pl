@@ -186,6 +186,29 @@ camino3(_,_,_,_).
 
 
 
+camino3(I,F,T,C) :- I = pos(Y1,X1),
+	F = pos(Y2,X2),
+	onBounds(X1,Y1,T),
+	onBounds(X2,Y2,T),
+	camino3Aux(I,F,T,C,[]).
+
+camino3Aux(Pos,Pos,T,C,Aux) :- not(member(Pos, Aux)),
+	Pos = pos(Y,X),
+	onBounds(X,Y,T),
+	C = [Pos]
+	assert(minPath(Pos,0)).
+
+camino3Aux(I,F,T,C,Aux) :- not(member(I,Aux)),
+	vecinoLibre(I,T,NewI),
+	append([I], NewPath, C) ,
+	camino3Aux(NewI,F,T,NewPath, [I|Aux]),
+	minPath(NewI, Distance),
+	NewDistance is 1 + Distance,
+	shortestPath(I,NewDistance),
+	assert(minPath(I,NewDistance)).
+		
+
+
 shortestPath(P,D) :- not((minPath(P,D2), D2 < D)).
 
 :- dynamic minPath/2.
