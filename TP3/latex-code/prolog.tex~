@@ -1,0 +1,309 @@
+\section*{Aut\'omatas finitos.}
+
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=prolog,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+
+\begin{lstlisting}
+%%Proyectores
+inicialDe(a(I, _, _), I).
+finalesDe(a(_, F, _), F).
+transicionesDe(a(_, _, T), T).
+
+%Auxiliar dada en clase
+%desde(+X, -Y).
+desde(X, X).
+desde(X, Y):-desde(X, Z),  Y is Z + 1.
+
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 1}
+\begin{lstlisting}
+%esDeterministico(+Automata)
+esDeterministico(A) :- transicionesDe(A, T), 
+		      not(transicionSimilar(T)).
+
+%transicionSimilar(+Lista_transiciones)
+transicionSimilar(T) :- member((Origen,Etiqueta,X),T), 
+		      member((Origen,Etiqueta,Y),T), X \= Y.
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 2}
+\begin{lstlisting}
+%estados(+Automata, ?Estados)
+% Es valido si ningun estado de la lista pasada como parámetro es invalido, y no falta ninguno, 
+% cuando Estados esta instanciada
+estados(A, Estados) :- nonvar(Estados), 
+		      not((member(E,Estados),
+		      esEstadoInvalido(E,A))), 
+		      not(faltaUno(A,Estados)).
+
+%Al final se ordena y se saca repetidos con la función sort
+estados(a(I, Finales, T), Estados) :- 	var(Estados),
+				      E1 = [I | Finales],
+				      estadosDeTransiciones(T, E2),
+				      append(E1, E2, E3),
+				      sort(E3, Estados).
+
+%faltaUno(+Automata, +Estados). 
+faltaUno(A, Estados) :- transicionesDe(A,T), 
+			member((Origen,_,_),T), 
+			not(member(Origen,Estados)).
+			
+faltaUno(A, Estados) :- transicionesDe(A,T), 
+			member((_,_,Destino),T), 
+			not(member(Destino,Estados)).
+
+faltaUno(A, Estados) :- inicialDe(A,X), 
+			not(member(X,Estados)).
+			
+faltaUno(A, Estados) :- finalesDe(A,F), 
+			member(X,F), 
+			not(member(X,Estados)).
+
+%esEstadoInvalido(+Estado, +Automata)
+esEstadoInvalido(E, a(Inicial,Finales,Transiciones)) :- (Inicial \= E), 
+							not(member(E,Finales)), 
+							 noAparece(E,Transiciones).
+
+%noAparece(+E, +Lista_transiciones)
+noAparece(E,Transiciones) :- not(member((E,_,_),Transiciones)), 
+			    not(member((_,_,E),Transiciones)).
+
+%estadosDeTransiciones(+Lista_transiciones, -Lista_estados)
+estadosDeTransiciones([], []).
+estadosDeTransiciones([(X,_,Y) | XS], Estados) :- estadosDeTransiciones(XS, E), 
+						  Estados = [X,Y|E].
+
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 3}
+\begin{lstlisting}
+%esCamino(+Automata, ?EstadoInicial, ?EstadoFinal, +Camino)
+esCamino(A, S1, S2, Camino) :- nth0(0,Camino,S1), 
+			      last(Camino,S2), 
+			      caminoValido(A,Camino).
+
+%caminoValido(+Automata,+Camino)
+caminoValido(A,[X]) :- estados(A,E), 
+		      member(X,E).
+		      
+caminoValido(A,[X,Y|Tail]) :- transicionesDe(A,T), 
+			      member( (X,_,Y), T), 
+			      caminoValido(A,[Y|Tail]).
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 4}
+¿El predicado anterior es o no reversible con respecto a Camino y por que? \\
+El predicado NO es reversible respecto a camino. Prolog intenta buscar soluciones en todos los caminos posibles. Cuando uno instancia únicamente el origen, y el final del camino y 
+exige que el origen coincida con el principio del camino y final con su último nodo determina infinitas listas que cumplen esta condición. Por ejemplo, una lista de 2 elementos, 
+de 3, de 4, etc. Por lo tanto el programa intenta generar cada una de estas posibilidades y realizar el chequeo por cada una de ellas. La consecuencia es que el programa encuentra todas las soluciones,
+pero nunca finaliza. Este funcionamiento es correcto para autómatas con ciclos, pero incorrecto para autómatas que generean un número finito de palabras. Es posible agregar un cut (!) al final para que esto no suceda. 
+esCamino(A, S1, S2, Camino) :- nth0(0,Camino,S1), last(Camino,S2), caminoValido(A,Camino),!. La consecuencia es que en el caso de que exista un camino entre los estados S1 y S2, 
+se instancie C únicamente en el de longitud menor.
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 5}
+\begin{lstlisting}
+%caminoDeLongitud(+Automata, +N, -Camino, -Etiquetas, ?S1, ?S2)
+caminoDeLongitud(A, 1, [X], [], X, Y) :- X=Y, 
+					estados(A,Es), 
+					member(X,Es).
+
+%Unificamos NmenosUno para poder utilizar el predicado ">", que requiere 2 expresiones aritmeticas.
+%Utilizamos uno u otro predicado dependiendo el valor de N.
+caminoDeLongitud(A, N, Camino, Etiquetas, S1, S2) :-
+	NmenosUno is N-1,
+	NmenosUno+1 > 1,
+	transicionesDe(A,T),
+	caminoDeLongitud(A,NmenosUno, RestoCamino, RestoEtiquetas, Svecino, S2),
+	member( (S1,E,Svecino), T),
+	Camino = [S1 | RestoCamino],
+	Etiquetas = [E | RestoEtiquetas].
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 6}
+\begin{lstlisting}
+%alcanzable(+Automata, +Estado)
+%Disclaimer: el estado inicial no es alcanzable desde sí mismo a menos que forme parte de un ciclo, 
+%tal como dice el enunciado.
+alcanzable(A,E) :- inicialDe(A,S1), 
+		  alcanzableDesde(A,S1,E).
+
+%En el caso de haber ciclos, cada estado del grafo puede ser alcanzado a través de un camino con una 
+%cantidad de nodos menor o igual a #Nodos+1 
+%alcanzableDesde(+Automata,+Inicial,+Estado)
+alcanzableDesde(A,E1,E2) :- estados(A,Es), 
+			    length(Es,L), 
+			    Ncota is L+1, 
+			    nAlcanzableDesde(A,E1,E2,Ncota).
+
+%nAlcanzableDesde(+Automata,+Inicial,+Estado,+NCotaSuperior
+%Los caminos a través de los cuales los nodos son alcanzables tienen por lo menos 1 transición.
+%Este predicado utiliza la técnica generate and test. Between actúa como generador, instanciando
+%en N los posibles valores. caminoDeLongitud actúa como filtro, utilizando como argumento
+%la variable N ya instanciada. Se utiliza el cut para optimizar la ejecución una vez que
+%el predicado evalúa a true.
+nAlcanzableDesde(A,E1,E2,Ncota) :- between(2,Ncota,N), 
+				   caminoDeLongitud(A, N, _, _, E1, E2), 
+				   !. 
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 7}
+\begin{lstlisting}
+automataValido(+Automata)
+automataValido(A) :- tienenTransicionesSalientes(A),
+		    sonAlcanzables(A),
+		    tieneFinal(A),
+		    noHayFinalesRepetidos(A),
+		    noHayTransicionesRepetidas(A).
+
+%tienenTransicionesSalientes(+Automata)
+tienenTransicionesSalientes(A) :- estados(A,Es),
+				  transicionesDe(A,T),
+				  finalesDe(A,F),
+				  forall( 
+				      (member(E,Es), not(member(E,F))), 
+				      member((E,_,_),T) 
+				      ).
+
+%Chequea si todos los estados son alcanzados desde el estado inicial, salvo este último.
+%sonAlcanzables(+Automata)
+sonAlcanzables(A) :- estados(A, Es), 
+		    inicialDe(A,I),
+		    forall(
+		      (member(E, Es), E \= I),
+		      alcanzable(A, E)
+		      ).
+
+%tieneFinal(+Automata)
+tieneFinal(A) :- finalesDe(A,F), 
+		length(F,T), 
+		T > 0.
+
+%noHayFinalesRepetidos(+Automata)
+noHayFinalesRepetidos(A) :- finalesDe(A,F), 
+			    sinRepetidos(F).
+
+%noHayTransicionesRepetidas(+Automata)
+noHayTransicionesRepetidas(A) :- transicionesDe(A,T), 
+				 sinRepetidos(T).
+
+%Aprovechamos que el predicado sort elimina repetidos.
+%sinRepetidos(+Lista)
+sinRepetidos(Lista) :- length(Lista,L), 
+		      sort(Lista,ListaOrdenada), 
+		      length(ListaOrdenada,L2), 
+		      L =:= L2.
+
+
+%--- NOTA: De acá en adelante se asume que los autómatas son válidos.
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 8}
+\begin{lstlisting}
+%hayCiclo(+Automata)
+%Se nos ocurrieron 2 soluciones. Ambas funcionan. Descomentar para probar la segunda opción. 
+%Las 2 utilizan el cut para frenar el cómputo una vez que encuentran una solución.
+%Teoría de grafos. Si hay un ciclo y el autómata es válido, entonces puedo encontrar un 
+%camino de longitud CantEstados+1 por lo menos para un par de nodos.
+hayCiclo(A):- estados(A,Estados), 
+	     length(Estados, CantEstados), 
+	     Cota is CantEstados + 1,
+             caminoDeLongitud(A, Cota, _ , _, _, _), 
+             !.
+
+%Esta aproximacion es la más intuitiva. Utiliza la definición de ciclo.
+hayCiclo2(A) :- estados(A, Es),
+	      member(E, Es),
+	      alcanzableDesde(A,E,E),
+	      !.
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 9}
+\begin{lstlisting}
+%reconoce(+Automata, ?Palabra)
+reconoce(A, P) :- nonvar(P), 
+		 inicialDe(A,I), 
+		 length(P,N), 
+		 palabraLongitudN(I,A,N,P).
+
+%Cuando la variable no está instanciada, utilizamos la técnica generate and test.
+%En el caso de que haya ciclos, usamos como generador el predicado "desde", comenzando con 0 
+%(palabra vacía), ya que deben encontrarse infinitas palabras.
+%En el caso de no haber ciclos, utilizamos como generador "between", ya que la longitud de 
+%las posibles palabras está acotada por la cantidad de transiciones.
+reconoce(A,P) :- var(P), 
+		hayCiclo(A), 
+		desde(0,N), 
+		inicialDe(A,I), 
+		palabraLongitudN(I,A,N,P).
+		
+reconoce(A,P) :- var(P), 
+		not(hayCiclo(A)), 
+		transicionesDe(A,T), 
+		length(T,L), 
+		between(0,L,N), 
+		inicialDe(A,I), 
+		palabraLongitudN(I,A,N,P).
+
+%palabraLongitudN(+Estado,+Automata,+N,?Palabra)
+palabraLongitudN(E,A,0,[]) :- finalesDe(A,F), 
+			      member(E,F).
+			      
+palabraLongitudN(E,A,N,[X|Xs]) :- N>0, 
+				transicionesDe(A,T), 
+				NmenosUno is N-1, 
+				member((E,X,Destino),T), 
+				palabraLongitudN(Destino,A,NmenosUno,Xs).
+
+\end{lstlisting}
+\vspace{1cm}
+
+\subsubsection*{Ejercicio 10}
+\begin{lstlisting}
+%PalabraMásCorta(+Automata, ?Palabra)
+%Encuentra todas las palabras de mínima longitud.
+palabraMasCorta(A, P) :- ejemploPalabraMasCorta(A,X), 
+			length(X,N), 
+			inicialDe(A,I), 
+			palabraLongitudN(I,A,N,P).
+
+%ejemploPalabraMasCorta(+Automata,-Palabra)
+%encuentra la palabra de minima longitud posible y la instancia en P. Utiliza el metodo 
+%generate and test, empezando por la  palabra vacia, buscando secuencias progresivamente 
+%mas grandes. Frena al encontrar una.
+ejemploPalabraMasCorta(A,P) :- desde(0,N), 
+			      inicialDe(A,I), 
+			      palabraLongitudN(I,A,N,P), 
+			      !.
+\end{lstlisting}
+\vspace{1cm}

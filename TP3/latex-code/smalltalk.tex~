@@ -1,0 +1,661 @@
+\section{Piedra, papel, tijera, lagarto y Spock.}
+
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=prolog,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+
+\subsection{Eleccion}
+
+\begin{lstlisting}
+Eleccion class
+	instanceVariableNames: ''
+
+papel
+	^ Papel new.
+
+
+lagarto
+	^ Lagarto new.
+
+	
+piedra
+	^ Piedra new.
+	
+
+todas
+	^ self subclasses collect: [ :s | s new ]
+
+
+spock
+	^ Spock new.
+
+
+tijera
+	^ Tijera new.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\begin{lstlisting}
+Object subclass: #Eleccion
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+	
+ganadorContraPiedra	
+	^ self subclassResponsibility.
+
+	
+ganadorContraTijera
+	^ self subclassResponsibility.
+
+ganadorContraPapel
+	^ self subclassResponsibility.
+
+
+ganadorContra: otraEleccion
+	^ self subclassResponsibility.
+
+
+noEmpataContra: otraEleccion
+	^ (self empataContra: otraEleccion) not.
+
+	
+empataContra: otraEleccion
+	^ (self ganadorContra: otraEleccion) isNil.
+	
+
+ganaContra: otraEleccion
+	^ (self noEmpataContra: otraEleccion)
+	 	and:
+		[ (self ganadorContra: otraEleccion) = self ]
+		
+
+pierdeContra: otraEleccion
+	^ (self noEmpataContra: otraEleccion)
+		and:
+		[ (self ganaContra: otraEleccion) not ]
+		
+
+= otraEleccion
+	^self class = otraEleccion class. 
+	
+
+asString
+	^ self class name.
+	
+	
+
+eleccionSuperadora
+		^ Eleccion todas detect: [ :e | e ganaContra: self ]
+
+
+hash
+	^ self class hash.
+
+\end{lstlisting}
+\vspace{5mm}
+
+
+
+\subsubsection{Lagarto}
+\begin{lstlisting}
+Eleccion subclass: #Lagarto
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+ganadorContraPiedra
+	^ Piedra new.
+
+	
+ganadorContra: otraEleccion
+	^ otraEleccion ganadorContraLagarto.
+
+
+ganadorContraTijera
+	^ Tijera new.
+
+
+ganadorContraLagarto
+	^ nil.
+
+
+ganadorContraPapel
+	^ self.
+
+
+ganadorContraSpock
+	^ self.
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Papel}
+\begin{lstlisting}
+Eleccion subclass: #Papel
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+	
+ganadorContraPiedra	
+	^ self.
+
+
+ganadorContraTijera
+	^ Tijera new.
+
+	
+ganadorContraPapel	
+	^ nil.
+
+	
+ganadorContra: otraEleccion
+	^ otraEleccion ganadorContraPapel.
+
+
+ganadorContraSpock	
+	^ self.
+
+
+ganadorContraLagarto	
+	^ Lagarto new.
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Piedra}
+\begin{lstlisting}
+Eleccion subclass: #Piedra
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+ganadorContraSpock	
+	^ Spock new.
+
+	
+ganadorContraLagarto	
+	^ self.
+
+
+ganadorContraPiedra	
+	^ nil.
+
+
+ganadorContraTijera	
+	^ self.
+
+	
+ganadorContraPapel	
+	^ Papel new.
+
+
+ganadorContra: otraEleccion
+	^ otraEleccion ganadorContraPiedra .
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Spock}
+\begin{lstlisting}
+Eleccion subclass: #Spock
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+ganadorContraPiedra	
+	^ self.
+
+
+ganadorContra: otraEleccion
+	^ otraEleccion ganadorContraSpock.
+	
+	
+ganadorContraTijera	
+	^ self.
+
+
+ganadorContraLagarto	
+	^ Lagarto new.
+
+
+ganadorContraPapel	
+	^ Papel new.
+
+
+ganadorContraSpock
+	^ nil.
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Tijera}
+\begin{lstlisting}
+Eleccion subclass: #Tijera
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+ganadorContraSpock
+	^ Spock new.
+
+
+ganadorContraLagarto
+	^ self.
+
+
+ganadorContraPiedra
+	^ Piedra new.
+
+
+ganadorContraTijera
+	^ nil.
+
+
+ganadorContraPapel
+	^ self.
+	
+
+ganadorContra: otraEleccion
+	^ otraEleccion ganadorContraTijera.
+
+	
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{GeneradorRandomParaTest}
+\begin{lstlisting}
+Object subclass: #GeneradorRandomParaTest
+	instanceVariableNames: 'siguiente'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+	
+	
+siguiente: unNumeroAleatorio
+	siguiente := unNumeroAleatorio.
+
+
+nextInt: anInteger 
+	^ siguiente.
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{Juego}
+\begin{lstlisting}
+Juego class
+	instanceVariableNames: ''!
+	
+
+entre: unJugador y: otroJugador 	
+	^ self new jugador1: unJugador jugador2: otroJugador;
+			yourself. 
+
+
+mejorDe: cantidadDeJuegos contra: unJugador
+	Juego mejorDe: cantidadDeJuegos entre: Jugador humano y: unJugador.
+
+
+mejorDe: cantidadDeJuegos entre: unJugador y: otroJugador
+	| j |
+	j := Juego entre: unJugador y: otroJugador.
+	cantidadDeJuegos timesRepeat: [ j iniciar ].
+\end{lstlisting}
+\vspace{5mm}
+
+\begin{lstlisting}
+Object subclass: #Juego
+	instanceVariableNames: 'jugador1 jugador2 resultado eleccion1 eleccion2'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+resultado	
+	resultado isNil ifTrue: [ self iniciar ].
+	^ resultado.
+
+
+revancha
+	^ self iniciar.
+
+
+jugador1: unJugador jugador2: otroJugador 
+	jugador1 := unJugador.
+	jugador2 := otroJugador.
+	
+
+iniciar
+	eleccion1 := jugador1 eleccion.
+	eleccion2 := jugador2 eleccion.
+	resultado := Resultado jugador1: jugador1 conEleccion: eleccion1
+				 			jugador2: jugador2 conEleccion: eleccion2.
+							
+	resultado notificarAJugadores.
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{Jugador}
+
+
+\begin{lstlisting}
+Jugador class
+	instanceVariableNames: ''
+
+	
+aleatorio
+	^ Aleatorio new conGenerador: (Random new).
+	
+
+aleatorioConGenerador: unGenerador
+	^ Aleatorio new conGenerador: unGenerador
+	
+
+siempre: unaEleccion 	
+	^Terco new elegir: unaEleccion.
+	
+
+conHistoriaHasta: cantidadDeResultadosAGuardar
+	^ self shouldBeImplemented.
+
+	
+adaptativoIniciandoCon: unaEleccion
+	^ Adaptativo new elegir: unaEleccion.
+	
+
+humano
+	^ Interactivo new.
+\end{lstlisting}
+\vspace{5mm}
+
+\begin{lstlisting}
+Object subclass: #Jugador
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+empatoEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 
+	"Implementar si hace falta actuar en base a este evento."
+	
+
+eleccion
+	self subclassResponsibility.
+	
+
+ganoEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 
+	"Implementar si hace falta actuar en base a este evento."
+	
+
+perdioEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 
+	"Implementar si hace falta actuar en base a este evento."
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Adaptativo}
+\begin{lstlisting}
+Jugador subclass: #Adaptativo
+	instanceVariableNames: 'proximaEleccion'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+	
+
+perdioEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria
+	proximaEleccion  := eleccionContraria eleccionSuperadora
+	
+
+empatoEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria
+	proximaEleccion := eleccionContraria eleccionSuperadora
+
+	
+elegir: unaEleccion
+	proximaEleccion := unaEleccion
+	
+	
+eleccion
+	^proximaEleccion
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Aleatorio}
+\begin{lstlisting}
+Jugador subclass: #Aleatorio
+	instanceVariableNames: 'generador'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+	
+
+eleccion
+	|i cantidadDeElecciones|
+	cantidadDeElecciones  := Eleccion todas size.
+	i := generador nextInt: cantidadDeElecciones.
+	^ Eleccion todas at: i.
+
+
+conGenerador: unGenerador
+	generador := unGenerador
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Interactivo}
+\begin{lstlisting}
+Jugador subclass: #Interactivo
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+	
+empatoEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 	
+	UITheme current
+		messageIn: Morph new
+		text: 'Empataste contra ' , eleccionContraria asString
+		title: 'Resultado'.
+
+		
+eleccion
+	^UITheme current	
+		chooseDropListIn: Morph new
+		text: 'Que jugamos?'
+		title: 'Nueva eleccion'
+		list: (Eleccion todas).
+
+
+ganoEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 
+	UITheme current
+		messageIn: Morph new
+		text: 'Le ganaste a ' , eleccionContraria asString
+		title: 'Resultado'.
+		
+
+perdioEligiendo: miEleccion contra: otroJugador eligiendo: eleccionContraria 
+	UITheme current
+		messageIn: Morph new
+		text: 'Perdiste contra ', eleccionContraria asString 
+		title: 'Resultado'. 
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Terco}
+\begin{lstlisting}
+
+Jugador subclass: #Terco
+	instanceVariableNames: 'mismaEleccionDeSiempre'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+	
+	
+eleccion
+	^mismaEleccionDeSiempre.
+
+	
+elegir: unaEleccion 
+	mismaEleccionDeSiempre := unaEleccion.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{Resultado}
+\begin{lstlisting}
+Resultado class
+	instanceVariableNames: ''
+
+
+jugador1: unJugador conEleccion: unaEleccion jugador2: otroJugador conEleccion: otraEleccion 
+	
+	(unaEleccion empataContra: otraEleccion) ifTrue: [
+		^ Empate entre: unJugador eligiendo: unaEleccion y: otroJugador eligiendo: otraEleccion.
+	].
+	
+	^ (unaEleccion ganaContra: otraEleccion)
+	ifTrue: [ Victoria de: unJugador eligiendo: unaEleccion contra: otroJugador eligiendo: otraEleccion ]
+	ifFalse: [ Victoria de: otroJugador eligiendo: otraEleccion contra: unJugador eligiendo: unaEleccion ].
+\end{lstlisting}
+\vspace{5mm}
+
+\begin{lstlisting}
+Object subclass: #Resultado
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Empate}
+\begin{lstlisting}
+Empate class
+	instanceVariableNames: ''
+
+entre: unJugador eligiendo: unaEleccion y: otroJugador eligiendo: otraEleccion 
+	^ self new
+		jugador1: unJugador
+		eleccion1: unaEleccion
+		jugador2: otroJugador
+		eleccion2: otraEleccion;
+		yourself.
+\end{lstlisting}
+\vspace{5mm}
+\begin{lstlisting}
+Resultado subclass: #Empate
+	instanceVariableNames: 'jugador1 eleccion1 jugador2 eleccion2'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+jugador1: unJugador eleccion1: unaEleccion jugador2: otroJugador eleccion2: otraEleccion 
+	
+	jugador1 := unJugador.
+	eleccion1 := unaEleccion.
+	jugador2 := otroJugador.
+	eleccion2 := otraEleccion.
+
+
+ganador
+	^ nil.
+
+
+esEmpate
+	^ true.
+
+
+notificarAJugadores
+	
+	jugador1 empatoEligiendo: eleccion1 
+			contra: jugador2  
+			eligiendo: eleccion2.
+	jugador2 empatoEligiendo: eleccion2 
+			contra: jugador1  
+			eligiendo: eleccion1.
+\end{lstlisting}
+\vspace{5mm}
+
+
+\subsubsection{Victoria}
+\begin{lstlisting}
+Victoria class
+	instanceVariableNames: ''
+
+	
+de: unJugador eligiendo: unaEleccion contra: otroJugador eligiendo: otraEleccion 
+	^ self new 
+		ganador: unJugador
+		eleccionGanadora: unaEleccion
+		perdedor: otroJugador
+		eligiendo: otraEleccion;
+		yourself.
+\end{lstlisting}
+\vspace{5mm}
+\begin{lstlisting}
+Resultado subclass: #Victoria
+	instanceVariableNames: 'ganador eleccionGanadora perdedor eleccionPerdedora'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+	
+notificarAJugadores
+	
+		ganador ganoEligiendo: eleccionGanadora contra: perdedor eligiendo: eleccionPerdedora.
+		perdedor perdioEligiendo: eleccionPerdedora contra: ganador eligiendo: eleccionGanadora.
+
+		
+ganador
+	^ ganador
+	
+	
+esEmpate
+	^ false.
+
+	
+ganador: unJugador eleccionGanadora: unaEleccion perdedor: otroJugador eligiendo: otraEleccion 
+	ganador := unJugador.
+	eleccionGanadora := unaEleccion.
+	perdedor := otroJugador.
+	eleccionPerdedora := otraEleccion.
+\end{lstlisting}
+\vspace{5mm}
+
+
+
+
+
+
+
+
+
+
+
+
+
