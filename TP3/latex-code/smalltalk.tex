@@ -1,0 +1,247 @@
+\section{Modelo de mediciones}
+
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=prolog,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+
+\subsection{Unidad}
+
+\begin{lstlisting}
+
+Object subclass: #Unidad
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP-2015C1'
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "
+
+Unidad class
+	instanceVariableNames: ''
+
+escalar
+	^UnidadEscalar new.
+
+metro
+	^UnidadBasica deNombre:'metro'.
+
+kilogramo
+	^UnidadBasica deNombre:'kilogramo'.
+
+segundo
+	^UnidadBasica deNombre:'segundo'.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Producto de Unidades}
+\begin{lstlisting}
+	
+Unidad subclass: #ProductoDeUnidades
+	instanceVariableNames: 'factores'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP-2015C1'
+
+* anUnidad 
+	(anUnidad class = ProductoDeUnidades ) ifTrue: [^ self productoProducto: anUnidad].
+	^ anUnidad * self.
+
+productoProducto: aProductoDeUnidades 
+	^ ProductoDeUnidades de: ((self factores) addAll: (aProductoDeUnidades factores); yourself).
+
+init: aCollection 
+	factores := aCollection.
+
+factores
+	^ factores.
+
+printOn: aStream 
+	(1 to: (factores size - 1)) do: [ :each | (factores at:each) printOn: aStream . aStream nextPutAll: ' ' ].
+	^(factores at:(factores size)) printOn: aStream.
+
+= otraUnidad
+	^ (self class = otraUnidad class) and: [self factores asBag = otraUnidad factores asBag ].
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "
+
+ProductoDeUnidades class
+	instanceVariableNames: ''!
+
+de: factores 
+	factores ifEmpty: [ ^ Unidad escalar ]. 
+	(factores size = 1) ifTrue: [ ^ factores first ].
+	^ self new init: factores! !
+
+\end{lstlisting}
+\vspace{5mm}
+
+
+
+\subsubsection{Unidad B\'asica}
+\begin{lstlisting}
+Unidad subclass: #UnidadBasica
+	instanceVariableNames: 'nombre'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP-2015C1'
+
+initNombre: aString 
+	nombre := aString.
+
+hash
+	^ nombre hash.
+
+nombre
+	^ nombre.
+	
+* anUnidad
+	(anUnidad class = UnidadEscalar) ifTrue: [ ^ self productoEscalar: anUnidad ].
+	(anUnidad class = UnidadBasica) ifTrue: [^ self productoBasica: anUnidad].
+	^ self productoProducto: anUnidad.
+
+
+productoEscalar: anUnidadEscalar 
+	^ self.
+
+productoBasica: anUnidadBasica
+	^ ProductoDeUnidades de: (OrderedCollection  with: self with: anUnidadBasica).
+
+productoProducto: aProductoDeUnidades 
+	^ ProductoDeUnidades de: ( (aProductoDeUnidades factores) add: self ; yourself).
+
+= otraUnidad
+	^ (self class = otraUnidad class) and: [self nombre = otraUnidad nombre].
+
+printOn: aStream 
+	^ aStream nextPutAll: nombre.
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "
+
+UnidadBasica class
+	instanceVariableNames: ''
+
+deNombre: aString 
+	^ self new initNombre: aString.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\subsubsection{Unidad Escalar}
+\begin{lstlisting}
+Unidad subclass: #UnidadEscalar
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP-2015C1'!
+
+* anUnidad
+	(anUnidad class = UnidadEscalar) ifTrue: [ ^ self productoEscalar: anUnidad ].
+	(anUnidad class = UnidadBasica) ifTrue: [^ self productoBasica: anUnidad].
+	^ self productoProducto: anUnidad.
+
+productoEscalar: anUnidadEscalar 
+	^ anUnidadEscalar.
+
+productoBasica: anUnidadBasica 
+	^ anUnidadBasica .
+
+productoProducto: aProductoDeUnidades 
+	^ aProductoDeUnidades.
+
+= otraUnidad
+	^ (self class = otraUnidad class).
+
+printOn: aStream 
+	^ aStream nextPutAll: 'escalar'.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{Medida}
+\begin{lstlisting}
+Object subclass: #Medida
+	instanceVariableNames: 'cantidad unidad'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP-2015C1'
+
+cantidad: anInteger unidad: anUnidad
+	cantidad := anInteger.
+	unidad := anUnidad.
+
+cantidad
+	^ cantidad.
+
+unidad
+	^ unidad.
+
++ otraMedida
+	(self unidad = otraMedida unidad) ifTrue: [^ Medida new cantidad: (self cantidad + otraMedida cantidad) unidad: (self unidad)].
+	^ super + otraMedida.
+
+- otro 
+	^ self + ((-1) * otro).
+
+* otraMedida 
+	^ self cantidad: cantidad * (otraMedida cantidad) unidad: unidad * (otraMedida unidad).
+
+metro
+	^ Medida new cantidad: (self cantidad) unidad: ((self unidad) * (Unidad metro)).
+
+kilogramo
+	^ Medida new cantidad: (self cantidad) unidad: ((self unidad) * (Unidad kilogramo)).
+
+segundo
+	^ Medida new cantidad: (self cantidad) unidad: ((self unidad) * (Unidad segundo)).
+
+= medida2
+	^ (self class = medida2 class) and: [(cantidad = medida2 cantidad) and: (unidad = medida2 unidad)].
+
+printOn: aStream
+	aStream nextPutAll: cantidad asString. 
+	aStream nextPutAll: ' '. 
+	^unidad printOn: aStream.
+
+\end{lstlisting}
+\vspace{5mm}
+
+\subsection{Number}
+\begin{lstlisting}
+
+cantidad
+	^self.
+
+unidad
+	^Unidad escalar.
+
+kilogramo
+	^Medida new cantidad: self unidad: Unidad kilogramo.
+
+metro
+	^Medida new cantidad: self unidad: Unidad metro.
+	
+segundo
+	^Medida new cantidad: self unidad: Unidad segundo.
+
+\end{lstlisting}
