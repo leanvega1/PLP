@@ -29,7 +29,7 @@ foldExp fVar fNot fOr fAnd fD fB exp =
 visibilidad :: Exp -> Integer
 visibilidad e = foldExp fVar fNot fOr fAnd fD fB e
     where fVar = const 0
-          fNot = const 0 
+          fNot = id
           fOr = max
           fAnd = max
           fD = (1+)
@@ -76,11 +76,7 @@ valeEn exp (K g v) = foldr f [] (nodos g)
 quitar :: Exp -> Modelo -> Modelo
 quitar exp (K g v) = foldr f (K g v) (valeEn (Not exp) (K g v) )
     where f = (\w (K recG recV) -> K (sacarNodo w recG) (h w recV) )
-          h = (\w recV p -> if elem p (extraer exp) then 
-								List.delete w (recV p)
-							else
-								recV p
-				)
+          h = (\w recV p -> List.delete w (recV p) )
 
 
 -- Ejercicio 16
@@ -88,5 +84,5 @@ quitar exp (K g v) = foldr f (K g v) (valeEn (Not exp) (K g v) )
 -- en todos los mundos del modelo.
 cierto :: Modelo -> Exp -> Bool
 cierto (K g v) e = cantidad (nodos g) == cantidad (valeEn e (K g v))
-	where cantidad = foldr (+) 0
+	where cantidad = foldr (\n recr -> 1 + recr) 0
 
