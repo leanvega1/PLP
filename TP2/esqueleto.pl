@@ -164,7 +164,7 @@ manhattanCompare(=, manhattan(_,_), manhattan(_,_)) :-
 %% desde Inicio en más de 6 pasos.
 %% Notar que dos ejecuciones de camino3/4 con los mismos argumentos deben dar los mismos resultados.
 %% En este ejercicio se permiten el uso de predicados: dynamic/1, asserta/1, assertz/1 y retractall/1.
-camino3(_,_,_,_).
+%camino3(_,_,_,_).
 
 %%camino3Aux(Pos,Pos,T,C,Aux) :- not(member(Pos, Aux)),
 %%	Pos = pos(Y,X),
@@ -184,35 +184,51 @@ camino3(_,_,_,_).
 %% camino3AuxVecinos([_|Vs],F,T,C,Aux) :-
 %% camino2AuxVecinos(Vs,F,T,C,Aux).
 
+:- dynamic minPath/2.
+minPath(pos(0,0),0).
 
-
-camino3(I,F,T,C) :- I = pos(Y1,X1),
+camino3(I,F,T,C) :- retractall(minPath(_,_)),
+	I = pos(Y1,X1),
 	F = pos(Y2,X2),
 	onBounds(X1,Y1,T),
 	onBounds(X2,Y2,T),
-	camino3Aux(I,F,T,C,[]).
+	asserta(minPath(I,0)),
+	findall(C2, camino3Aux(I,F,T,C2,[],0), Paths),
+	member(C,Paths),
+	length(C,PathDistance),
+	minDistance(F,MinDistance),
+	PathDistance is MinDistance + 1.
 
-camino3Aux(Pos,Pos,T,C,Aux) :- not(member(Pos, Aux)),
+camino3Aux(Pos,Pos,T,C,Aux,_) :- not(member(Pos, Aux)),
 	Pos = pos(Y,X),
 	onBounds(X,Y,T),
-	C = [Pos]
-	assert(minPath(Pos,0)).
+	C = [Pos].
 
-camino3Aux(I,F,T,C,Aux) :- not(member(I,Aux)),
-	vecinoLibre(I,T,NewI),
-	append([I], NewPath, C) ,
-	camino3Aux(NewI,F,T,NewPath, [I|Aux]),
-	minPath(NewI, Distance),
-	NewDistance is 1 + Distance,
-	shortestPath(I,NewDistance),
-	assert(minPath(I,NewDistance)).
+camino3Aux(I,F,T,C,Aux,Distance) :- 	not(member(I,Aux)),
+	vecinoLibre(I,T,Vecino),
+	PathDistance is Distance + 1,
+	%%Si habia un camino mas corto hasta I
+	%%no sigue considerando soluciones
+	shortestPath(Vecino,PathDistance),
+	asserta(minPath(Vecino,PathDistance)),
+	camino3Aux(Vecino,F,T,NewPath, [I|Aux], PathDistance),
+	append([I], NewPath, C).
 		
+		
+minDistance(Pos,Min) :- findall(D, minPath(Pos,D), Ds),
+				list_min(Ds,Min).
+
+list_min([L|Ls], Min) :- list_min(Ls, L, Min).
+
+list_min([], Min, Min).
+list_min([L|Ls], Min0, Min) :-
+    Min1 is min(L, Min0),
+    list_min(Ls, Min1, Min).
 
 
-shortestPath(P,D) :- not((minPath(P,D2), D2 < D)).
+shortestPath(P,D) :- not((minDistance(P,D2), D2 < D)).
 
-:- dynamic minPath/2.
-minPath(pos(0,0),0).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tableros simultáneos
