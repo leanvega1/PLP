@@ -56,42 +56,46 @@ segundo
 
 \subsubsection{Producto de Unidades}
 \begin{lstlisting}
-	
 Unidad subclass: #ProductoDeUnidades
 	instanceVariableNames: 'factores'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PLP-TP-2015C1'
 
-* anUnidad 
-	(anUnidad class = ProductoDeUnidades ) ifTrue: [^ self productoProducto: anUnidad].
-	^ anUnidad * self.
-
-productoProducto: aProductoDeUnidades 
-	^ ProductoDeUnidades de: ((self factores) addAll: (aProductoDeUnidades factores); yourself).
+factores
+	^ factores
 
 init: aCollection 
 	factores := aCollection.
 
-factores
-	^ factores.
+* anUnidad 
+	^anUnidad productoProducto: self.
+
+productoProducto: aProductoDeUnidades 
+	^ ProductoDeUnidades de: ((aProductoDeUnidades factores) addAll: (self factores) ; yourself).
+
+productoBasica: anUnidadBasica 
+	^ ProductoDeUnidades de: ((OrderedCollection  with: anUnidadBasica) addAll: (self factores); yourself).
+
+productoEscalar: anUnidadEscalar 
+	^self.
+
+= otraUnidad
+	^ (self class = otraUnidad class) and: [self factores asBag = otraUnidad factores asBag ].
 
 printOn: aStream 
 	(1 to: (factores size - 1)) do: [ :each | (factores at:each) printOn: aStream . aStream nextPutAll: ' ' ].
 	^(factores at:(factores size)) printOn: aStream.
 
-= otraUnidad
-	^ (self class = otraUnidad class) and: [self factores asBag = otraUnidad factores asBag ].
-
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "
 
 ProductoDeUnidades class
-	instanceVariableNames: ''!
+	instanceVariableNames: ''
 
 de: factores 
 	factores ifEmpty: [ ^ Unidad escalar ]. 
 	(factores size = 1) ifTrue: [ ^ factores first ].
-	^ self new init: factores! !
+	^ self new init: factores
 
 \end{lstlisting}
 \vspace{5mm}
@@ -110,22 +114,19 @@ initNombre: aString
 	nombre := aString.
 
 hash
-	^ nombre hash.
+	^ nombre hash
 
 nombre
-	^ nombre.
-	
-* anUnidad
-	(anUnidad class = UnidadEscalar) ifTrue: [ ^ self productoEscalar: anUnidad ].
-	(anUnidad class = UnidadBasica) ifTrue: [^ self productoBasica: anUnidad].
-	^ self productoProducto: anUnidad.
+	^ nombre
 
+* anUnidad
+	^anUnidad productoBasica: self.
 
 productoEscalar: anUnidadEscalar 
 	^ self.
 
 productoBasica: anUnidadBasica
-	^ ProductoDeUnidades de: (OrderedCollection  with: self with: anUnidadBasica).
+	^ ProductoDeUnidades de: (OrderedCollection  with: anUnidadBasica with: self ).
 
 productoProducto: aProductoDeUnidades 
 	^ ProductoDeUnidades de: ( (aProductoDeUnidades factores) add: self ; yourself).
@@ -136,7 +137,7 @@ productoProducto: aProductoDeUnidades
 printOn: aStream 
 	^ aStream nextPutAll: nombre.
 
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 UnidadBasica class
 	instanceVariableNames: ''
@@ -153,12 +154,10 @@ Unidad subclass: #UnidadEscalar
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'PLP-TP-2015C1'!
+	category: 'PLP-TP-2015C1'
 
 * anUnidad
-	(anUnidad class = UnidadEscalar) ifTrue: [ ^ self productoEscalar: anUnidad ].
-	(anUnidad class = UnidadBasica) ifTrue: [^ self productoBasica: anUnidad].
-	^ self productoProducto: anUnidad.
+	^anUnidad productoEscalar: self.
 
 productoEscalar: anUnidadEscalar 
 	^ anUnidadEscalar.
@@ -228,7 +227,6 @@ printOn: aStream
 
 \subsection{Number}
 \begin{lstlisting}
-
 cantidad
 	^self.
 
