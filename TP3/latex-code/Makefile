@@ -1,15 +1,7 @@
 
-.PHONY: all dot clean
+informe.pdf : informe.tex 
+	pdflatex informe.tex
+	rm -f *.aux *.log *.backup *.out *.toc 
 
-PDF=Informe.TP2.AyEDIII.2014.C1.pdf
-TEXFILES=
-
-# IMAGES=$(patsubst  %, image/%, ${IMAGE})
-
-all: $(PDF)
-
-$(PDF): ej1.tex ej2.tex ej3.tex introduccion.tex
-	texi2pdf informe.tex -o $(PDF)
-
-clean:
-	rm -f $(PDF) *.aux *.log *.toc informe.out informe.blg informe.bbl
+clean : 
+		rm -f informe.pdf *.aux *.log *.backup *.out *.toc 
